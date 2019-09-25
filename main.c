@@ -213,8 +213,8 @@ char 	*argv[];
 		fprintf(stderr,"The I option forces interpolation onto a regular grid, while\n");
 		fprintf(stderr,"the D option forces a DFT without interpolation.\n");
 		fprintf(stderr,"The U option inhibits windowing.\n");
-		fprintf(stderr,"The L option subtracts a ramp from the data whose slope is\n");
-		fprintf(stderr,"the first datapoint minus the last datapoint in the window over the window timespan.\n");
+		fprintf(stderr,"The L option subtracts a ramp from the data whose slope and offset is\n");
+		fprintf(stderr,"found from a linear regression of the data in the window.\n");
 		fprintf(stderr,"Lines which do not start in the first column with a character that starts a\n");
 		fprintf(stderr,"legal number (+, -, ., or a digit 1-9 and 0) are treated as comment lines and\n");
 		fprintf(stderr,"copied to the output verbatim; otherwise the line is treated as a data line.\n");
@@ -367,12 +367,31 @@ char 	*argv[];
             endIdx = i;
         }
 
-        double m = (yjbs[endIdx] - yjbs[0]) / (xjbs[endIdx] - xjbs[0]); /* calculate the slope*/
+        /* fit a linear regression y = mx + b*/
+        /* https://www.statisticshowto.datasciencecentral.com/probability-and-statistics/regression-analysis/find-a-linear-regression-equation/ */
+        double sx = 0;  // sum x
+        double sxy = 0; // sum xy
+        double sxs = 0; // sum x^2
+        double sy = 0;  // sum y
+        double n = 0;   // number points
 
-        for(int i = 1; i <= endIdx; i++)
+        for(int i = 0; i <= endIdx; i++)
         {
-            yjbs[i] = yjbs[i] - (xjbs[i]- xjbs[0])*m;	/* subtract the calculated slope from the data in the window*/
+            sx += xjbs[i];
+            sxy += (xjbs[i]*yjbs[i]);
+            sxs += (xjbs[i]*xjbs[i]);
+            sy += (yjbs[i]);
+            n += 1;
         }
+
+        double m = (n*sxy - sx*sy)/(n*sxs - sx*sx);
+        double b = (sy*sxs- sx*sxy)/(n*sxs-sx*sx);
+        printf("\nM: %.8f B: %.8f\n", m, b);
+        for(int i = 0; i <= endIdx; i++)
+        {
+            yjbs[i] = yjbs[i] - (m*xjbs[i] + b);	/* subtract the calculated slope from the data in the window*/
+        }
+
     }
 
 	/* apply a raised cosine window */
