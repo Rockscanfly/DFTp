@@ -197,11 +197,12 @@ char 	*argv[];
 	void*	memsiz;
 	double*	splines;
 	double*	ny;
-	int argI , argD, argU, argL = 0;
+	volatile unsigned int argI , argD, argU, argL;
+	argI = argD = argU = argL = 0;
 	int endIdx = 0;
 
 	if ( argc!=4 && argc!=5 && argc!=6 && argc!=7 && argc!=8 )	{ /* ?? */
-		fprintf(stderr,"DFTp for windows V1.04 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
+		fprintf(stderr,"DFTp for windows V1.05 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
 		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L]] [>opfile]\n");
 		fprintf(stderr,"This program reads in ASCII files with one time/signal pair of values per\n");
@@ -243,20 +244,20 @@ char 	*argv[];
             switch ( optn )	{
                 case 'i':
                 case 'I': /* force interpolation */
-                argI = 1;
-                break;
+                    argI = 1;
+                    break;
                 case 'd':
                 case 'D': /* force NO interpolation (Direct) */
-                argD = 1;
-                break;
+                    argD = 1;
+                    break;
                 case 'u':
                 case 'U': /* inhibit windowing */
-                argU = 1;
-                break;
+                    argU = 1;
+                    break;
                 case 'l':
                 case 'L': /* inhibit windowing */
-                argL = 1;
-                break;
+                    argL = 1;
+                    break;
                 default:
                 fprintf(stderr,"Illegal option `%c'!\n", optn);
                 exit(1);
@@ -265,7 +266,6 @@ char 	*argv[];
     } else {
     optn = 'X';
     }
-
 
 	/* Readin procedure */
 	while ( fgets(cinline,254,fp) != NULL ) {
