@@ -255,7 +255,7 @@ char 	*argv[];
                     argU = 1;
                     break;
                 case 'l':
-                case 'L': /* inhibit windowing */
+                case 'L': /* subtract ramp*/
                     argL = 1;
                     break;
                 default:
@@ -386,7 +386,7 @@ char 	*argv[];
 
         double m = (n*sxy - sx*sy)/(n*sxs - sx*sx);
         double b = (sy*sxs- sx*sxy)/(n*sxs-sx*sx);
-        printf("\nM: %.8f B: %.8f\n", m, b);
+        fprintf(stderr, "\nM: %.8f B: %.8f\n", m, b);
         for(int i = 0; i <= endIdx; i++)
         {
             yjbs[i] = yjbs[i] - (m*xjbs[i] + b);	/* subtract the calculated slope from the data in the window*/
