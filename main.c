@@ -20,6 +20,7 @@
 might be needed in each array */
 double	xjbs[ASIZE+1];
 double	yjbs[ASIZE+1];
+volatile int columnSelect = 1;
 
 void nrerror(char *error_text);
 double *dvector(int nl,int nh);
@@ -123,6 +124,27 @@ int *counter;
 	char* line;
 	int	data=0;
 
+	char linestyle[256];
+
+    switch ( columnSelect )	{
+        case 1:
+        case 2:
+            sprintf(linestyle, "%%le %%le");
+            break;
+        case 3:
+            sprintf(linestyle, "%%le %%*le %%le");
+            break;
+        case 4:
+            sprintf(linestyle, "%%le %%*le %%*le %%le");
+            break;
+        case 5:
+            sprintf(linestyle, "%%le %%*le %%*le %%*le %%le");
+            break;
+        default:
+            fprintf(stderr,"Column Selection greater than 5 not supported\n");
+            exit(1);
+    }
+
 	/* ignore leading space character if it exists */
 	if ( !strncmp(string," ",1) ) { line = string+1; }
 	else { line = string; }
@@ -140,7 +162,8 @@ int *counter;
 		!strncmp(line,"+",1) ||
 		!strncmp(line,"-",1) ||
 		!strncmp(line,".",1) )	{  /* data line */
-		if (2!=sscanf(line, "%le %le", &x[*counter], &y[*counter])) {
+//		if (2!=sscanf(line, "%le %le", &x[*counter], &y[*counter])) {
+		if (2!=sscanf(line, linestyle, &x[*counter], &y[*counter])) {
 			/* did not get two floats! */
 			fprintf(stderr,"dft: error reading line %d (did not get 2 numbers after \"numeric\" start):\n%s", *counter, line);
 			exit(1);
@@ -201,7 +224,7 @@ char 	*argv[];
 	argI = argD = argU = argL = 0;
 	int endIdx = 0;
 
-	if ( argc!=4 && argc!=5 && argc!=6 && argc!=7 && argc!=8 )	{ /* ?? */
+	if ( argc < 4 )	{ /* ?? */
 		fprintf(stderr,"DFTp for windows V1.05 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
 		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L]] [>opfile]\n");
@@ -215,7 +238,8 @@ char 	*argv[];
 		fprintf(stderr,"The U option inhibits windowing.\n");
 		fprintf(stderr,"The L option subtracts a ramp from the data whose slope and offset is\n");
 		fprintf(stderr,"found from a linear regression of the data in the window.\n");
-		fprintf(stderr,"Lines which do not start in the first column with a character that starts a\n");
+        fprintf(stderr,"The C option selects the data column specified by the trailing number up to column 5.\n");
+        fprintf(stderr,"Lines which do not start in the first column with a character that starts a\n");
 		fprintf(stderr,"legal number (+, -, ., or a digit 1-9 and 0) are treated as comment lines and\n");
 		fprintf(stderr,"copied to the output verbatim; otherwise the line is treated as a data line.\n");
 		fprintf(stderr,"One leading space at the start of a line is tolerated, but data lines which\n");
@@ -241,6 +265,7 @@ char 	*argv[];
         for(int i = 5; i < argc; i++)
         {
             sscanf(argv[i],"%c", &optn);
+//            printf(st)
             switch ( optn )	{
                 case 'i':
                 case 'I': /* force interpolation */
@@ -257,6 +282,12 @@ char 	*argv[];
                 case 'l':
                 case 'L': /* subtract ramp*/
                     argL = 1;
+                    break;
+                case 'c':
+                case 'C': /* select column*/
+                    columnSelect = atoi(argv[i+1]);
+                    fprintf(stderr, "Column Selected: %i\n", columnSelect);
+                    i++;
                     break;
                 default:
                 fprintf(stderr,"Illegal option `%c'!\n", optn);
