@@ -20,7 +20,7 @@
 might be needed in each array */
 double	xjbs[ASIZE+1];
 double	yjbs[ASIZE+1];
-volatile int columnSelect = 1;
+volatile int columnSelect = 2;
 
 void nrerror(char *error_text);
 double *dvector(int nl,int nh);
@@ -225,7 +225,7 @@ char 	*argv[];
 	int endIdx = 0;
 
 	if ( argc < 4 )	{ /* ?? */
-		fprintf(stderr,"DFTp for windows V1.05 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
+		fprintf(stderr,"DFTp for windows V1.06 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
 		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L]] [>opfile]\n");
 		fprintf(stderr,"This program reads in ASCII files with one time/signal pair of values per\n");
@@ -265,7 +265,6 @@ char 	*argv[];
         for(int i = 5; i < argc; i++)
         {
             sscanf(argv[i],"%c", &optn);
-//            printf(st)
             switch ( optn )	{
                 case 'i':
                 case 'I': /* force interpolation */
@@ -287,6 +286,8 @@ char 	*argv[];
                 case 'C': /* select column*/
                     columnSelect = atoi(argv[i+1]);
                     fprintf(stderr, "Column Selected: %i\n", columnSelect);
+                    if(columnSelect == 1)
+                        fprintf(stderr, "Warning: first column must be time, reading data from column 2 instead\n");
                     i++;
                     break;
                 default:
