@@ -227,7 +227,7 @@ char 	*argv[];
 	if ( argc < 4 )	{ /* ?? */
 		fprintf(stderr,"DFTp for windows V1.06 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
-		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L]] [>opfile]\n");
+		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L|C n]] [>opfile]\n");
 		fprintf(stderr,"This program reads in ASCII files with one time/signal pair of values per\n");
 		fprintf(stderr,"line and takes the DFT of signal*(raised_cosine) at w0 and #harmonics of w0,\n");
 		fprintf(stderr,"starting at the #starting_harmonic (i.e., skipping over #starting_harmonics).\n");
@@ -238,7 +238,8 @@ char 	*argv[];
 		fprintf(stderr,"The U option inhibits windowing.\n");
 		fprintf(stderr,"The L option subtracts a ramp from the data whose slope and offset is\n");
 		fprintf(stderr,"found from a linear regression of the data in the window.\n");
-        fprintf(stderr,"The C option selects the data column specified by the trailing number up to column 5.\n");
+        fprintf(stderr,"The C option selects the data column specified by the trailing number\n");
+        fprintf(stderr,"There must be a space between C and n, n can be one of [2, 3, 4, 5] \n");
         fprintf(stderr,"Lines which do not start in the first column with a character that starts a\n");
 		fprintf(stderr,"legal number (+, -, ., or a digit 1-9 and 0) are treated as comment lines and\n");
 		fprintf(stderr,"copied to the output verbatim; otherwise the line is treated as a data line.\n");
