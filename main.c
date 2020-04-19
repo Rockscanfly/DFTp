@@ -206,7 +206,7 @@ int n;
 {
     double temp;
     int a = 0;
-    int b = n;
+    int b = n-1;
 
     while(a < b)
     {
@@ -433,7 +433,6 @@ char 	*argv[];
         remove_tail(xjbs, ndatl, nremov);
         ndatl -= nremov;
     }
-
     if(argH)
     {
         fprintf(stderr,"Removing %d cycles from head\n", argH);
@@ -469,7 +468,6 @@ char 	*argv[];
             exit(1);
             }
     }
-
 
 	/* are the data nearly equispaced? */
 	dtemp = span/(ndatl-1);
