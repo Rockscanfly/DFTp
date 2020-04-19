@@ -29,7 +29,10 @@ void spline(double *x,double *y,int n,double yp1,double ypn,double *y2);
 void splint(double *xa,double *ya,double *y2a,int n,double x,double *y);
 int readxy(char *string,double *x,double *y,int *counter);
 void output(int harm, double fund, double real, double imag, double span);
-
+void reverse_array(double *arr, int n);
+void move_time(double *arr, int n);
+void remove_head(double *arr, int narr, int nremov);
+void remove_tail(double *arr, int narr, int nremov);
 
 void nrerror(error_text)
 char error_text[];
@@ -197,6 +200,55 @@ double fund,real,imag,span;
 	fprintf(stderr,"harmonic %d = %lf < %.2lf                \r", harm, mag, pha);
 	}
 
+void reverse_array(arr, n)
+double arr[];
+int n;
+{
+    double temp;
+    int a = 0;
+    int b = n;
+
+    while(a < b)
+    {
+        temp = arr[a];
+        arr[a] = arr[b];
+        arr[b] = temp;
+        a++;
+        b--;
+    }
+}
+
+void move_time(arr, n)
+double arr[];
+int n;
+{
+    for(int i = n-1; i > 0; i--)
+    {
+        arr[i] = fabs(arr[i]-arr[0]);
+
+    }
+    arr[0] = 0; // set to 0 to avoid rounding issues
+}
+
+void remove_head(arr, narr, nremov)
+double arr[];
+int narr, nremov;
+{
+    for(int i = nremov-1; i < narr; i++)
+        arr[i-nremov] = arr[i];
+
+    remove_tail(arr, narr, nremov);
+}
+
+void remove_tail(arr, narr, nremov)
+double arr[];
+int narr, nremov;
+{
+    for(int i = (narr-nremov); i < narr; i++)
+        arr[i] = 0;
+}
+
+
 int main(argc,argv)	/*pgm to take DFT of potentially ungridded data */
 int 	argc;
 char 	*argv[];
@@ -220,14 +272,14 @@ char 	*argv[];
 	void*	memsiz;
 	double*	splines;
 	double*	ny;
-	volatile unsigned int argI , argD, argU, argL;
-	argI = argD = argU = argL = 0;
+	volatile int argI , argD, argU, argL, argH, argT, argF;
+	argI = argD = argU = argL = argH = argT = argF = 0;
 	int endIdx = 0;
 
 	if ( argc < 4 )	{ /* ?? */
 		fprintf(stderr,"DFTp for windows V1.06 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
-		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L|C n]] [>opfile]\n");
+		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L|C n||F|H n|T n]] [>opfile]\n");
 		fprintf(stderr,"This program reads in ASCII files with one time/signal pair of values per\n");
 		fprintf(stderr,"line and takes the DFT of signal*(raised_cosine) at w0 and #harmonics of w0,\n");
 		fprintf(stderr,"starting at the #starting_harmonic (i.e., skipping over #starting_harmonics).\n");
@@ -240,6 +292,14 @@ char 	*argv[];
 		fprintf(stderr,"found from a linear regression of the data in the window.\n");
         fprintf(stderr,"The C option selects the data column specified by the trailing number\n");
         fprintf(stderr,"There must be a space between C and n, n can be one of [2, 3, 4, 5] \n");
+        fprintf(stderr,"The F option flips the data reversing the time order of the data\n");
+        fprintf(stderr,"the last datum is now at time 0 and the first is at the of the original last point\n");
+        fprintf(stderr,"this is achieved by subtracting the final time value from all time values and taking the absolute\n");
+        fprintf(stderr,"OPTION F WILL REVERSE THE DATA BEFORE OPTION H OR OPTION T REMOVE CYCLES\n");
+        fprintf(stderr,"The H option removes n leading cycles from the data\n");
+        fprintf(stderr,"There must be a space between H and n, n must be a positive integer\n");
+        fprintf(stderr,"The T option removes n trailing cycles from the data\n");
+        fprintf(stderr,"There must be a space between T and n, n must be a positive integer\n");
         fprintf(stderr,"Lines which do not start in the first column with a character that starts a\n");
 		fprintf(stderr,"legal number (+, -, ., or a digit 1-9 and 0) are treated as comment lines and\n");
 		fprintf(stderr,"copied to the output verbatim; otherwise the line is treated as a data line.\n");
@@ -291,6 +351,23 @@ char 	*argv[];
                         fprintf(stderr, "Warning: first column must be time, reading data from column 2 instead\n");
                     i++;
                     break;
+                case 'f':
+                case 'F': /* flip data*/
+                    argF = 1;
+                    fprintf(stderr, "Flipping data order\n");
+                    break;
+                case 'h':
+                case 'H': /* remove leading cycle*/
+                    argH = atoi(argv[i+1]);
+                    fprintf(stderr, "Leading cycles to remove: %i\n", argH);
+                    i++;
+                    break;
+                case 't':
+                case 'T': /* remove end cycle*/
+                    argT = atoi(argv[i+1]);
+                    fprintf(stderr, "Trailing cycles to remove: %i\n", argT);
+                    i++;
+                    break;
                 default:
                 fprintf(stderr,"Illegal option `%c'!\n", optn);
                 exit(1);
@@ -317,7 +394,7 @@ char 	*argv[];
 	ncycles = (int)(fundamental*span*(1.0+EPS)); /* i = # whole periods in span */
 	wspan = ncycles*(1/fundamental); /* largest span which is a multiple of the period */
 	fprintf(stderr,"Natural span is %lf; window span (%d cycles fit) is %lf\n", span, ncycles, wspan);
-	if ( ncycles==0 ) {
+	if ( ncycles<=0 ) {
 		fprintf(stderr,"Natural span too small... aborting.\n");
 		exit(1);
 		}
@@ -325,6 +402,74 @@ char 	*argv[];
 		fprintf(stderr,"Can't happen error 1 !\n");
 		exit(1);
 		}
+
+
+    if((argT + argH) >= ncycles) {
+		fprintf(stderr,"Unable to remove %d cycles from %d total cycles\n", (argT + argH), ncycles);
+		exit(1);
+        }
+
+    if (argF)
+    {
+        fprintf(stderr,"Reversing data order\n");
+        reverse_array(xjbs, ndatl);
+        reverse_array(yjbs, ndatl);
+        move_time(xjbs, ndatl);
+    }
+    if(argT) {
+        fprintf(stderr,"Removing %d cycles from tail\n", argT);
+        double time_to_remove = ((double)argT * (1.0/fundamental)) - EPS;
+        if(time_to_remove >= xjbs[ndatl-1])
+            fprintf(stderr,"Error unable to remove that many cycles from tail\n");
+
+        int nremov = 0;
+        for(int i = ndatl -1; i > 0; i--) {
+            if((xjbs[ndatl-1] - xjbs[i]) >= time_to_remove)
+                break;
+
+            nremov++;
+        }
+
+        remove_tail(xjbs, ndatl, nremov);
+        ndatl -= nremov;
+    }
+
+    if(argH)
+    {
+        fprintf(stderr,"Removing %d cycles from head\n", argH);
+        double time_to_remove = ((double)argH * (1.0/fundamental)) - EPS;
+        if(time_to_remove >= xjbs[ndatl-1])
+            fprintf(stderr,"Error unable to remove that many cycles from head\n");
+        int nremov = 0;
+        for(int i = 0; i < ndatl; i++)
+        {
+            if((xjbs[i] - xjbs[0]) >= time_to_remove)
+                break;
+
+            nremov++;
+        }
+
+        remove_head(xjbs, ndatl, nremov);
+        ndatl -= nremov;
+    }
+
+    if(argH || argT) {
+        fprintf(stderr,"Recalculating span after removing %d cycles\n", (argH + argT));
+        span = xjbs[ndatl-1]-xjbs[0];
+        /* see what size window to multiply across the data */
+        ncycles = (int)(fundamental*span*(1.0+EPS)); /* i = # whole periods in span */
+        wspan = ncycles*(1/fundamental); /* largest span which is a multiple of the period */
+        fprintf(stderr,"New span is %lf; window span (%d cycles fit) is %lf\n", span, ncycles, wspan);
+        if ( ncycles<=0 ) {
+            fprintf(stderr,"New span too small... aborting.\n");
+            exit(1);
+            }
+        if (wspan<(span/2.0)) {
+            fprintf(stderr,"Can't happen error 1 !\n");
+            exit(1);
+            }
+    }
+
 
 	/* are the data nearly equispaced? */
 	dtemp = span/(ndatl-1);
@@ -380,8 +525,8 @@ char 	*argv[];
 		for(i=0; i<ndatl && xjbs[i]-xjbs[0]<wspan-EPS; i++) {;} /* find first point outside wspan */
 		if (i==ndatl) {
 			fprintf(stderr,"Cannot happen! (xjbs[%d]-xjbs[0]=%le)-(wspan)=%le\n", i-1, xjbs[i-1]-xjbs[0], xjbs[i-1]-xjbs[0]-wspan);
-			exit(1); }
-
+			exit(1);
+        }
 
 		xjbs[i] = xjbs[0]+wspan; /* put it on the edge exactly */
 //		yjbs[i] = yjbs[0]);	/* and copy the first datum around */
