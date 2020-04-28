@@ -277,7 +277,7 @@ char 	*argv[];
 	int endIdx = 0;
 
 	if ( argc < 4 )	{ /* ?? */
-		fprintf(stderr,"DFTp V1.07 20M Points, VGF Apr 2020, Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
+		fprintf(stderr,"DFTp for windows V1.06 20M Points, VGF Sep 2019, JBS Dec 2013, after Apr-1995 & Dec 2012 \n");
 		fprintf(stderr,"%d parameters is illegal.\n", argc-1);
 		fprintf(stderr,"Usage: dftp ipfile w0 #harmonics [#starting_harmonic [I|D|U|L|C n||F|H n|T n]] [>opfile]\n");
 		fprintf(stderr,"This program reads in ASCII files with one time/signal pair of values per\n");
