@@ -429,6 +429,7 @@ char 	*argv[];
 
             nremov++;
         }
+        nremov--; // leave an extra datapoint behind
 
         remove_tail(xjbs, ndatl, nremov);
         ndatl -= nremov;
@@ -447,6 +448,7 @@ char 	*argv[];
 
             nremov++;
         }
+        nremov--; // leave an extra data point behind
 
         remove_head(xjbs, ndatl, nremov);
         ndatl -= nremov;
