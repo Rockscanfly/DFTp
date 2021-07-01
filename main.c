@@ -235,9 +235,9 @@ double arr[];
 int narr, nremov;
 {
     for(int i = nremov-1; i < narr; i++)
-        arr[i-nremov] = arr[i];
+        arr[i-(nremov-1)] = arr[i]; //shuffle all the data forward by nremov
 
-    remove_tail(arr, narr, nremov);
+    remove_tail(arr, narr, nremov); // clean up the end
 }
 
 void remove_tail(arr, narr, nremov)
@@ -245,7 +245,7 @@ double arr[];
 int narr, nremov;
 {
     for(int i = (narr-nremov); i < narr; i++)
-        arr[i] = 0;
+        arr[i] = 0; // clear data to be removed
 }
 
 
@@ -274,6 +274,7 @@ char 	*argv[];
 	double*	ny;
 	volatile int argI , argD, argU, argL, argH, argT, argF;
 	argI = argD = argU = argL = argH = argT = argF = 0;
+  double rmHead = 0, rmTail = 0;
 	int endIdx = 0;
 
 	if ( argc < 4 )	{ /* ?? */
@@ -358,14 +359,16 @@ char 	*argv[];
                     break;
                 case 'h':
                 case 'H': /* remove leading cycle*/
-                    argH = atoi(argv[i+1]);
-                    fprintf(stderr, "Leading cycles to remove: %i\n", argH);
+                    argH = 1;
+                    rmHead = atof(argv[i+1]);
+                    fprintf(stderr, "Leading cycles to remove: %d\n", rmHead);
                     i++;
                     break;
                 case 't':
                 case 'T': /* remove end cycle*/
-                    argT = atoi(argv[i+1]);
-                    fprintf(stderr, "Trailing cycles to remove: %i\n", argT);
+                    argT = 1;
+                    rmTail = atof(argv[i+1]);
+                    fprintf(stderr, "Trailing cycles to remove: %d\n", rmTail);
                     i++;
                     break;
                 default:
@@ -404,8 +407,8 @@ char 	*argv[];
 		}
 
 
-    if((argT + argH) >= ncycles) {
-		fprintf(stderr,"Unable to remove %d cycles from %d total cycles\n", (argT + argH), ncycles);
+    if((rmHead + rmTail) >= ncycles) {
+		fprintf(stderr,"Unable to remove %d cycles from %d total cycles\n", (rmHead + rmTail), ncycles);
 		exit(1);
         }
 
@@ -417,8 +420,8 @@ char 	*argv[];
         move_time(xjbs, ndatl);
     }
     if(argT) {
-        fprintf(stderr,"Removing %d cycles from tail\n", argT);
-        double time_to_remove = ((double)argT * (1.0/fundamental)) - EPS;
+        fprintf(stderr,"Removing %d cycles from tail\n", rmTail);
+        double time_to_remove = ((double)rmTail * (1.0/fundamental)) - EPS;
         if(time_to_remove >= xjbs[ndatl-1])
             fprintf(stderr,"Error unable to remove that many cycles from tail\n");
 
@@ -436,8 +439,8 @@ char 	*argv[];
     }
     if(argH)
     {
-        fprintf(stderr,"Removing %d cycles from head\n", argH);
-        double time_to_remove = ((double)argH * (1.0/fundamental)) - EPS;
+        fprintf(stderr,"Removing %d cycles from head\n", rmHead);
+        double time_to_remove = ((double)rmHead * (1.0/fundamental)) - EPS;
         if(time_to_remove >= xjbs[ndatl-1])
             fprintf(stderr,"Error unable to remove that many cycles from head\n");
         int nremov = 0;
@@ -455,7 +458,7 @@ char 	*argv[];
     }
 
     if(argH || argT) {
-        fprintf(stderr,"Recalculating span after removing %d cycles\n", (argH + argT));
+        fprintf(stderr,"Recalculating span after removing %d cycles\n", (rmHead + rmTail));
         span = xjbs[ndatl-1]-xjbs[0];
         /* see what size window to multiply across the data */
         ncycles = (int)(fundamental*span*(1.0+EPS)); /* i = # whole periods in span */
