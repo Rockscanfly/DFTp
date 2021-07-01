@@ -234,18 +234,29 @@ void remove_head(arr, narr, nremov)
 double arr[];
 int narr, nremov;
 {
-    for(int i = nremov-1; i < narr; i++)
-        arr[i-(nremov-1)] = arr[i]; //shuffle all the data forward by nremov
 
-    remove_tail(arr, narr, nremov); // clean up the end
+  if(nremov < 0)
+    nremov = 0;
+
+  for(int i = 0; i < narr-nremov; i++)
+  {
+    arr[i] = arr[i+nremov]; //shuffle all the data forward by nremov
+  }
+
+  remove_tail(arr, narr, nremov); // clean up the end
 }
 
 void remove_tail(arr, narr, nremov)
 double arr[];
 int narr, nremov;
 {
-    for(int i = (narr-nremov); i < narr; i++)
-        arr[i] = 0; // clear data to be removed
+
+  if(nremov < 0)
+    nremov = 0;
+
+  for(int i = (narr-nremov); i < narr; i++){
+    arr[i] = 0; // clear data to be removed
+  }
 }
 
 
@@ -433,6 +444,8 @@ char 	*argv[];
             nremov++;
         }
         nremov--; // leave an extra datapoint behind
+        if(nremov < 0)
+          nremov = 0; // prevent removing no data from trying to add data
 
         remove_tail(xjbs, ndatl, nremov);
         ndatl -= nremov;
@@ -444,6 +457,7 @@ char 	*argv[];
         if(time_to_remove >= xjbs[ndatl-1])
             fprintf(stderr,"Error unable to remove that many cycles from head\n");
         int nremov = 0;
+
         for(int i = 0; i < ndatl; i++)
         {
             if((xjbs[i] - xjbs[0]) >= time_to_remove)
@@ -452,6 +466,9 @@ char 	*argv[];
             nremov++;
         }
         nremov--; // leave an extra data point behind
+
+        if(nremov < 0)
+          nremov = 0; // prevent removing no data from trying to add data
 
         remove_head(xjbs, ndatl, nremov);
         ndatl -= nremov;
