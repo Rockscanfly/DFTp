@@ -361,14 +361,14 @@ char 	*argv[];
                 case 'H': /* remove leading cycle*/
                     argH = 1;
                     rmHead = atof(argv[i+1]);
-                    fprintf(stderr, "Leading cycles to remove: %d\n", rmHead);
+                    fprintf(stderr, "Leading cycles to remove: %lf\n", rmHead);
                     i++;
                     break;
                 case 't':
                 case 'T': /* remove end cycle*/
                     argT = 1;
                     rmTail = atof(argv[i+1]);
-                    fprintf(stderr, "Trailing cycles to remove: %d\n", rmTail);
+                    fprintf(stderr, "Trailing cycles to remove: %lf\n", rmTail);
                     i++;
                     break;
                 default:
@@ -408,7 +408,7 @@ char 	*argv[];
 
 
     if((rmHead + rmTail) >= ncycles) {
-		fprintf(stderr,"Unable to remove %d cycles from %d total cycles\n", (rmHead + rmTail), ncycles);
+		fprintf(stderr,"Unable to remove %lf cycles from %d total cycles\n", (rmHead + rmTail), ncycles);
 		exit(1);
         }
 
@@ -420,7 +420,7 @@ char 	*argv[];
         move_time(xjbs, ndatl);
     }
     if(argT) {
-        fprintf(stderr,"Removing %d cycles from tail\n", rmTail);
+        fprintf(stderr,"Removing %lf cycles from tail\n", rmTail);
         double time_to_remove = ((double)rmTail * (1.0/fundamental)) - EPS;
         if(time_to_remove >= xjbs[ndatl-1])
             fprintf(stderr,"Error unable to remove that many cycles from tail\n");
@@ -439,7 +439,7 @@ char 	*argv[];
     }
     if(argH)
     {
-        fprintf(stderr,"Removing %d cycles from head\n", rmHead);
+        fprintf(stderr,"Removing %lf cycles from head\n", rmHead);
         double time_to_remove = ((double)rmHead * (1.0/fundamental)) - EPS;
         if(time_to_remove >= xjbs[ndatl-1])
             fprintf(stderr,"Error unable to remove that many cycles from head\n");
@@ -458,7 +458,7 @@ char 	*argv[];
     }
 
     if(argH || argT) {
-        fprintf(stderr,"Recalculating span after removing %d cycles\n", (rmHead + rmTail));
+        fprintf(stderr,"Recalculating span after removing %lf cycles\n", (rmHead + rmTail));
         span = xjbs[ndatl-1]-xjbs[0];
         /* see what size window to multiply across the data */
         ncycles = (int)(fundamental*span*(1.0+EPS)); /* i = # whole periods in span */
